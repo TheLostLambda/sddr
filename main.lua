@@ -102,7 +102,10 @@ end
 function love.resize()
   wx = love.graphics.getWidth()
   wy = love.graphics.getHeight()
-  water.init()
+  if state == 7 then
+    waterSX = wx / 800
+    waterSY = wy / 600
+  end
 end
 
 function intro1()
