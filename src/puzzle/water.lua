@@ -34,15 +34,22 @@ function Water.init()
   waterSY = wy / 600
   puzzle = {
     A = {x=570, y=30, w=80, h=60, lid=false, opns={{side="B", pos=0.5, open=true, link="P1"}, {side="L", pos=0.8, open=true, link="P4"}}, v=0},
-    P1 = {x=600, y=90, w=openingWidth, h=25, lid=true, opns={{side="T", pos=0.5, open=true, link="A"}, {side="B", pos=0.5, open=true, link="B"}}, v=0},
+    P1 = {x=600, y=90, w=openingWidth, h=25, lid=true, opns={{side="T", pos=0.5, open=true, link="A"}, {side="B", pos=0.5, open=false, link="B"}}, v=0},
     B = {x=570, y=115, w=80, h=60, lid=false, opns={{side="T", pos=0.5, open=true, link="P1"}, {side="R", pos=0.2, open=true, link="P2"}}, v=0},
     P2 = {x=650, y=123, w=100, h=openingWidth, lid=true, opns={{side="L", pos=0.5, open=true, link="B"}, {side="B", pos=1.0, open=true, link="P3"}}, v=0},
     P3 = {x=730, y=143, w=openingWidth, h=32, lid=true, opns={{side="T", pos=0.5, open=true, link="P2"}, {side="B", pos=0.5, open=true, link="C"}}, v=0},
     C = {x=710, y=175, w=60, h=60, lid=true, opns={{side="T", pos=0.5, open=true, link="P3"}}, v=0},
-    D = {x=400, y=100, w=80, h=60, lid=false, opns={{side="R", pos=0.2, open=true, link="P6"}}, v=0},
+    D = {x=400, y=100, w=80, h=60, lid=false, opns={{side="R", pos=0.2, open=true, link="P6"}, {side="L", pos=0.8, open=true, link="P9"}, {side="B", pos=0.5, open=true, link="P7"}}, v=0},
     P4 = {x=535, y=62, w=35, h=openingWidth, lid=true, opns={{side="L", pos=0.5, open=true, link="P5"}, {side="R", pos=0.5, open=true, link="A"}}, v=0},
-    P5 = {x=515, y=62, w=openingWidth, h=65, lid=true, opns={{side="R", pos=0.0, open=true, link="P4"}, {side="L", pos=1.0, open=true, link="P6"}}, v=0},
-    P6 = {x=480, y=107, w=35, h=openingWidth, lid=true, opns={{side="L", pos=0.5, open=true, link="D"}, {side="R", pos=0.5, open=true, link="P5"}}, v=0},
+    P5 = {x=515, y=62, w=openingWidth, h=66, lid=true, opns={{side="R", pos=0.0, open=true, link="P4"}, {side="L", pos=1.0, open=true, link="P6"}}, v=0},
+    P6 = {x=480, y=108, w=35, h=openingWidth, lid=true, opns={{side="L", pos=0.5, open=true, link="D"}, {side="R", pos=0.5, open=true, link="P5"}}, v=0},
+    F = {x=230, y=100, w=80, h=60, lid=false, opns={{side="R", pos=0.2, open=true, link="P11"}}, v=0},
+    P9 = {x=365, y=132, w=35, h=openingWidth, lid=true, opns={{side="L", pos=0.5, open=true, link="P10"}, {side="R", pos=0.5, open=true, link="D"}}, v=0},
+    P10 = {x=345, y=108, w=openingWidth, h=44, lid=true, opns={{side="R", pos=1.0, open=true, link="P9"}, {side="L", pos=0.0, open=true, link="P11"}}, v=0},
+    P11 = {x=310, y=108, w=35, h=openingWidth, lid=true, opns={{side="L", pos=0.5, open=true, link="F"}, {side="R", pos=0.5, open=true, link="P10"}}, v=0},
+    P7 = {x=430, y=160, w=openingWidth, h=65, lid=true, opns={{side="T", pos=0.5, open=true, link="D"}, {side="B", pos=0.5, open=true, link="P8"}}, v=0},
+    P8 = {x=430, y=225, w=35, h=openingWidth, lid=true, opns={{side="T", pos=0.0, open=true, link="P7"}}, v=0},
+    E = {x=465, y=195, w=60, h=80, lid=false, opns={}, v=0}
   }
 end
 
@@ -51,7 +58,7 @@ local function waterLevel(tank)
 end
 
 local function isFull(tank)
-  return waterLevel(tank) > tank.h - tankThickness and tank.lid
+  return waterLevel(tank) > tank.h and tank.lid
 end
 
 local function activeOutlets(tank)
@@ -71,17 +78,12 @@ local function activeOutlets(tank)
 end
 
 local function flow(tank, link, depth, dt)
-  if depth > 10 then
+  if depth > 20 then
     return nil
   end
   if link.y + link.h - waterLevel(link) > tank.y + tank.h - waterLevel(tank) and tank.v > 0 and not isFull(link) then
     tank.v = tank.v - waterRate * dt
-    if tank.v < 0 then
-      link.v = link.v + (tank.v + waterRate * dt)
-      tank.v = 0
-    else
-      link.v = link.v + waterRate * dt
-    end
+    link.v = link.v + waterRate * dt
   elseif link.y + link.h - waterLevel(link) > tank.y + tank.h - waterLevel(tank) and tank.v > 0 then
     for id,link2 in pairs(activeOutlets(link)) do
       flow(tank, puzzle[link2], depth + 1, dt)
@@ -109,28 +111,13 @@ function Water.drawPuzzle()
   end
 end
 
-function Water.drawTank(tank)
-  love.graphics.push()
-  love.graphics.scale(waterSX, waterSY)
-  love.graphics.setColor(tankColor)
-  love.graphics.rectangle("fill", tank.x, tank.y, tankThickness, tank.h)
-  love.graphics.rectangle("fill", tank.x, tank.y + tank.h, tank.w + tankThickness, tankThickness)
-  love.graphics.rectangle("fill", tank.x + tank.w, tank.y, tankThickness, tank.h)
-  if tank.lid then
-    love.graphics.rectangle("fill", tank.x, tank.y, tank.w + tankThickness, tankThickness)
-  end
-  love.graphics.setColor(waterColor)
-  love.graphics.rectangle("fill", tank.x + tankThickness, tank.y + tank.h - tank.v / tank.w, tank.w - tankThickness, tank.v / tank.w)
+local function openingStencil(tank)
   for _,opn in pairs(tank.opns) do
     if opn.open then
-      love.graphics.setColor(backgroundColor)
-      --[[if util.containsValue(activeOutlets(tank),opn.link) then
-        love.graphics.setColor(0, 255, 0)
-      end--]]
+      love.graphics.setColor(255, 255, 255, 0)
     else
-      love.graphics.setColor(tankColor)
+      love.graphics.setColor(255, 0, 0)
     end
-    love.graphics.setColor(255, 0, 0)
     if opn.side == "T" then
       love.graphics.rectangle("fill", tank.x + ((tank.w - openingWidth) * opn.pos) + tankThickness, tank.y, openingWidth - tankThickness, tankThickness)
     elseif opn.side == "B" then
@@ -141,6 +128,31 @@ function Water.drawTank(tank)
       love.graphics.rectangle("fill", tank.x + tank.w, tank.y + ((tank.h - openingWidth) * opn.pos) + tankThickness, tankThickness, openingWidth - tankThickness)
     end
   end
+end
+
+function Water.drawTank(tank)
+  love.graphics.push()
+  love.graphics.scale(waterSX, waterSY)
+  love.graphics.setColor(waterColor)
+  if waterLevel(tank) < tank.h then
+    love.graphics.rectangle("fill", tank.x, tank.y + tank.h, tank.w + tankThickness, -waterLevel(tank))
+  else
+    love.graphics.rectangle("fill", tank.x, tank.y + tank.h, tank.w + tankThickness, -tank.h)
+  end
+  local function wrapStencil()
+    openingStencil(tank)
+  end
+  love.graphics.stencil(wrapStencil, "replace", 1)
+  love.graphics.setStencilTest("equal", 0)
+  love.graphics.setColor(tankColor)
+  love.graphics.rectangle("fill", tank.x, tank.y, tankThickness, tank.h)
+  love.graphics.rectangle("fill", tank.x, tank.y + tank.h, tank.w + tankThickness, tankThickness)
+  love.graphics.rectangle("fill", tank.x + tank.w, tank.y, tankThickness, tank.h)
+  if tank.lid then
+    love.graphics.rectangle("fill", tank.x, tank.y, tank.w + tankThickness, tankThickness)
+  end
+  love.graphics.setStencilTest("gequal", 0)
+  openingStencil(tank)
   love.graphics.pop()
 end
 
