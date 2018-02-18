@@ -22,8 +22,11 @@ function love.load()
   wy = love.graphics.getHeight()
   duckAngle = -math.pi / 4
   elapsedTime = 0
-  state = 0
+  state = 7
   name = "Dennis"
+
+  -- Module Initialization
+  water.init()
 end
 
 function love.draw()
@@ -42,7 +45,9 @@ function love.draw()
   elseif state == 6 then
     intro6()
   elseif state == 7 then
-    waterPuzzle()
+    water.drawPuzzle()
+  elseif state == 8 then
+    water.fail()
   end
 end
 
@@ -51,10 +56,15 @@ function love.update(dt)
     elapsedTime = elapsedTime + dt
     duckAngle = math.sin(elapsedTime * 1.5) / 2.25
   end
+  if state == 7 then
+    water.runPuzzle(dt)
+  end
 end
 
 function love.mousepressed(x, y, button, isTouch)
-  love.audio.play(quack)
+  if state ~= 7 then
+    love.audio.play(quack)
+  end
 end
 
 function love.mousereleased(x, y, button, isTouch)
@@ -77,6 +87,9 @@ function love.mousereleased(x, y, button, isTouch)
     state = 6
   elseif state == 6 and util.choiceClick(x, y, 1) then
     state = 7
+  elseif state == 8 and util.choiceClick(x, y, 1) then
+    water.init()
+    state = 7
   end
 end
 
@@ -89,6 +102,7 @@ end
 function love.resize()
   wx = love.graphics.getWidth()
   wy = love.graphics.getHeight()
+  water.init()
 end
 
 function intro1()
@@ -119,11 +133,6 @@ end
 function intro6()
   local msg = "To free the Teal duck, fill its tub all the way up with water! You are allowed to place three stopppers. These stoppers can block a pipe and redirect the flow of water to free the duck!"
   util.dialog(msg, {"* Let's do this."})
-end
-
-function waterPuzzle()
-  tank = {x=(wx * 0.7), y=(wy * 0.1), w=(wx * 0.15), h=(wy * 0.25)}
-  water.drawTank(tank)
 end
 
 function titleScreen()

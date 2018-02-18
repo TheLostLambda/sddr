@@ -1,7 +1,6 @@
 local Util = {}
 
 function Util.dialog(msg, choices)
-  love.graphics.setBackgroundColor(0, 205, 210)
   local maxwellScale = (wx * 0.35) / maxwell:getWidth()
   love.graphics.draw(maxwell, (wx * 0.8), (wy * 0.5), 0, maxwellScale, maxwellScale, maxwell:getWidth() / 2, maxwell:getHeight() / 2)
   love.graphics.rectangle("fill", (wx * 0.05), (wy * 0.05), (wx * 0.55), (wy * 0.4), 10)
