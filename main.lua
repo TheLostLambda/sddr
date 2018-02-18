@@ -4,12 +4,13 @@ local water = require("src.puzzle.water")
 function love.load()
   -- Asset Initialization
   pacifico_scaled = love.graphics.newFont("assets/fonts/Courgette-Regular.ttf", 80)
-  amaranth_scaled = love.graphics.newFont("assets/fonts/Amaranth-Regular.ttf", 80)
+  amaranth_scaled = love.graphics.newFont("assets/fonts/Amaranth-Regular.ttf", 100)
   amaranth = love.graphics.newFont("assets/fonts/Amaranth-Regular.ttf", 30)
   love.graphics.setDefaultFilter("nearest") -- Put pixel art below this line.
   duckImageData = love.image.newImageData("assets/sprites/duck.png")
   duck = love.graphics.newImage(duckImageData)
   maxwell = love.graphics.newImage("assets/sprites/manatee.png")
+  teal_duck = love.graphics.newImage("assets/sprites/teal_duck.png")
   quack = love.audio.newSource("assets/sounds/quack.wav", "static")
 
   -- Window setup
@@ -96,6 +97,9 @@ end
 function love.keyreleased(key)
   if state == 0 then
     state = 1
+  end
+  if state == 7 and key == "space" then
+    water.start()
   end
 end
 
