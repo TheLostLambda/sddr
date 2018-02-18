@@ -21,4 +21,13 @@ function Util.choiceClick(x, y, c)
   return Util.pointWithin(x, y, (wx * 0.06), (wy * (0.4 + 0.1 * c)), (wx * 0.53), amaranth:getHeight())
 end
 
+function Util.containsValue(table, val)
+  for _,v in pairs(table) do
+    if v == val then
+      return true
+    end
+  end
+  return false
+end
+
 return Util
