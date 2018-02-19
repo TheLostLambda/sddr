@@ -296,4 +296,13 @@ function Water.fail()
   util.dialog(msg, {"* Try again."})
 end
 
+function Water.success()
+  Water.drawPuzzle()
+  love.graphics.setColor(0, 0, 0, 128)
+  love.graphics.rectangle("fill", 0, 0, wx, wy)
+  love.graphics.setColor(255, 255, 255)
+  local msg = "You did it " .. name .. "! You freed the Teal Duck from the lonely water temple! I can finally rest easy knowing he's being cared for."
+  util.dialog(msg, {"* Show me my duck!"})
+end
+
 return Water

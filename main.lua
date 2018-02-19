@@ -17,6 +17,7 @@ function love.load()
   waterSound:setVolume(0.5)
   main_theme = love.audio.newSource("assets/sounds/main_theme.wav", "stream")
   puzzle_theme = love.audio.newSource("assets/sounds/puzzle_theme.wav", "stream")
+  fanfare = love.audio.newSource("assets/sounds/fanfare.wav", "stream")
 
   -- Window setup
   love.window.setMode(800, 600, {resizable=true, minwidth=800, minheight=600})
@@ -56,11 +57,29 @@ function love.draw()
     water.drawPuzzle()
   elseif state == 9 then
     water.fail()
+  elseif state == 10 then
+    water.success()
+  elseif state == 11 then
+    duckReveal()
+  elseif state == 12 then
+    duckUnlock()
+  elseif state == 13 then
+    outro1()
+  elseif state == 14 then
+    outro2()
+  elseif state == 15 then
+    outro3()
+  elseif state == 16 then
+    outro4()
+  elseif state == 17 then
+    finale1()
+  elseif state == 18 then
+    finale2()
   end
 end
 
 function love.update(dt)
-  if state == 0 then
+  if state == 0 or state == 12 then
     elapsedTime = elapsedTime + dt
     duckAngle = math.sin(elapsedTime * 1.5) / 2.25
   end
@@ -74,7 +93,33 @@ function love.update(dt)
   end
   if state == 9 or state == 10 then
     love.audio.stop(waterSound)
+    elapsedTime = 0
+  end
+  if state == 11 then
+    duckAngle = 0
+    elapsedTime = elapsedTime + dt
+    fadedDuckScale = (((wx * 0.2) / duck:getWidth()) / fanfare:getDuration()) * elapsedTime
+    if elapsedTime > fanfare:getDuration() then
+      state = 12
+      elapsedTime = 0
+    end
     love.audio.stop(puzzle_theme)
+    love.audio.play(fanfare)
+  end
+  if state == 12 then
+    love.audio.stop(fanfare)
+  end
+  if state > 11 and state < 18 then
+    love.audio.play(main_theme)
+  end
+  if state == 17 or state == 18 then
+    elapsedTime = elapsedTime + dt
+    finaleAlpha = elapsedTime * (255 / 2)
+    if finaleAlpha > 255 and state ~= 18 then
+      state = 18
+      elapsedTime = 0
+      finaleAlpha = 0
+    end
   end
 end
 
@@ -113,6 +158,21 @@ function love.mousereleased(x, y, button, isTouch)
     state = 8
   elseif state == 8 and not water.isOn() then
     water.processClick(x,y)
+  elseif state == 10 and util.choiceClick(x, y, 1) then
+    state = 11
+  elseif state == 12 then
+    state = 13
+  elseif state == 13 and util.choiceClick(x, y, 1) then
+    state = 14
+  elseif state == 14 and util.choiceClick(x, y, 1) then
+    state = 15
+  elseif state == 14 and util.choiceClick(x, y, 2) then
+    state = 16
+  elseif state == 15 and util.choiceClick(x, y, 1) then
+    state = 16
+  elseif state == 16 and util.choiceClick(x, y, 1) then
+    elapsedTime = 0
+    state = 17
   end
 end
 
@@ -122,6 +182,9 @@ function love.keyreleased(key)
   end
   if state == 8 and key == "space" then
     water.start()
+  end
+  if state == 12 then
+    state = 13
   end
 end
 
@@ -175,4 +238,65 @@ function titleScreen()
   love.graphics.draw(duck, (wx * 0.5), (wy * 0.5), duckAngle, duckScale, duckScale, duck:getWidth() / 2, duck:getHeight() / 2)
   local startText = love.graphics.newText(amaranth_scaled, "Press any button to play!")
   love.graphics.draw(startText, (wx * 0.2), (wy * 0.75), 0, (wx * 0.6) / startText:getWidth())
+end
+
+function duckReveal()
+  love.graphics.setBackgroundColor(backgroundColor)
+  love.graphics.draw(teal_duck, (wx * 0.5), (wy * 0.45), duckAngle, fadedDuckScale, fadedDuckScale, duck:getWidth() / 2, duck:getHeight() / 2)
+end
+
+function duckUnlock()
+  love.graphics.setBackgroundColor(backgroundColor)
+  love.graphics.setColor(0, 205, 210)
+  local rescueText = love.graphics.newText(pacifico_scaled, "Duck Rescued! (How Daring!!!)")
+  love.graphics.draw(rescueText, (wx * 0.05), (wy * 0.05), 0, (wx * 0.9) / rescueText:getWidth())
+  love.graphics.setColor(255, 255, 255)
+  love.graphics.draw(teal_duck, (wx * 0.5), (wy * 0.45), duckAngle, fadedDuckScale, fadedDuckScale, teal_duck:getWidth() / 2, duck:getHeight() / 2)
+  love.graphics.setColor(0, 205, 210)
+  local bigText = love.graphics.newText(amaranth_scaled, "What a fine color!")
+  love.graphics.draw(bigText, (wx * 0.2), (wy * 0.70), 0, (wx * 0.6) / bigText:getWidth())
+  local smallerText = love.graphics.newText(amaranth_scaled, "The favorite color of the world's cutest girl! (Hey, that's you!)")
+  love.graphics.draw(smallerText, (wx * 0.1), (wy * 0.85), 0, (wx * 0.8) / smallerText:getWidth())
+end
+
+function outro1()
+  love.graphics.setBackgroundColor(0, 205, 210)
+  local msg = "That's one duck down, two to go! Maybe if we find the other two legendary rubber ducks, the mystery duck will reveal itself! I suppose we will have to conquer some more puzzles to find out!"
+  util.dialog(msg, {"* So what now?"})
+end
+
+function outro2()
+  local msg = "Hmm... Well, the next duck we'll need to track down is the Beavlet Duck, but I'm not sure if we are ready for something that extreme yet. Perhaps we should rest before continuing."
+  util.dialog(msg, {"* SHOW ME THE BEAVLET DUCK!", "* Okay, I can wait."})
+end
+
+function outro3()
+  local msg = "I'm sorry, I don't know where it is... (Brooks is still developing and testing prototypes for the Beavlet Duck, but the scratching from within the walls is making further progress difficult)."
+  util.dialog(msg, {"* Okay, I can wait."})
+end
+
+function outro4()
+  local msg = "Okay then, that's all for now! Good work " .. name .. ", you're a real rubber duck hero! Oh! Before I let you get back to your date, I have a message from Brooks!"
+  util.dialog(msg, {"* Oh?"})
+end
+
+function finale1()
+  love.graphics.setColor(255, 255, 255)
+  outro4()
+  love.graphics.setColor(0, 0, 0, finaleAlpha)
+  love.graphics.rectangle("fill", 0, 0, wx, wy)
+end
+
+function finale2()
+  love.graphics.setColor(0, 0, 0)
+  love.graphics.rectangle("fill", 0, 0, wx, wy)
+  love.graphics.setColor(255, 70, 230, finaleAlpha)
+  love.graphics.setFont(amaranth)
+  local msg = [[
+      Happy belated Valentine's Day Sarah! I love you so very much! You make my day every day and for that I cannot thank you enough! You are absolutely perfect in my eyes.
+      You truly are special to me, so I wanted to create something that was special to you! Hopefully this was as fun for you to play as it was for me to make!
+      Always remember that, even when it seems like the whole world is conspiring against you, and that you're all alone, you'll always have people that love you and care about you. I can say this with certainty because I am one of those people. There is no challenge that you cannot overcome, Sarah. And I mean that sincerely.
+  ]]
+  love.graphics.printf(msg, (wx * 0.05), (wy * 0.05), (wx * 0.9), "left", 0)
+  love.graphics.printf("~ Love, Brooks", (wx * 0.05), (wy * 0.9), (wx * 0.9), "right", 0)
 end
