@@ -146,9 +146,7 @@ end
 function Water.runPuzzle(dt)
   if waterOn then
     puzzle.IN.v = puzzle.IN.v + waterRate * dt
-    if love.audio.getSourceCount() < 1 then
-      love.audio.play(waterSound)
-    end
+    love.audio.play(waterSound)
   end
   for id,tank in pairs(puzzle) do
     if tank.v / tank.w > tank.h and not tank.lid then

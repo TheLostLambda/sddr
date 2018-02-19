@@ -12,7 +12,11 @@ function love.load()
   maxwell = love.graphics.newImage("assets/sprites/manatee.png")
   teal_duck = love.graphics.newImage("assets/sprites/teal_duck.png")
   quack = love.audio.newSource("assets/sounds/quack.wav", "static")
+  quack:setVolume(0.5)
   waterSound = love.audio.newSource("assets/sounds/water.wav", "stream")
+  waterSound:setVolume(0.5)
+  main_theme = love.audio.newSource("assets/sounds/main_theme.wav", "stream")
+  puzzle_theme = love.audio.newSource("assets/sounds/puzzle_theme.wav", "stream")
 
   -- Window setup
   love.window.setMode(800, 600, {resizable=true, minwidth=800, minheight=600})
@@ -60,11 +64,17 @@ function love.update(dt)
     elapsedTime = elapsedTime + dt
     duckAngle = math.sin(elapsedTime * 1.5) / 2.25
   end
+  if state < 8 then
+    love.audio.play(main_theme)
+  end
   if state == 8 then
+    love.audio.stop(main_theme)
+    love.audio.play(puzzle_theme)
     water.runPuzzle(dt)
   end
   if state == 9 or state == 10 then
     love.audio.stop(waterSound)
+    love.audio.stop(puzzle_theme)
   end
 end
 
