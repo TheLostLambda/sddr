@@ -19,18 +19,20 @@ local util = require("src.util")
 -- Constants
 tankColor = {200,200,200}
 waterColor = {30, 50, 180}
-lightWaterColor = {30, 50, 180, 64}
+lightWaterColor = {70, 80, 115}
 backgroundColor = {75, 75, 75}
 offColor = {160,30,0}
 tankThickness = 5
 waterRate = 2500
 openingWidth = 20
+maxStoppers = 4
 
 waterSX = nil
 waterSY = nil
 
 local puzzle = nil
 local waterOn = nil
+local usedStoppers = nil
 
 function Water.start()
   if not waterOn then
@@ -38,8 +40,13 @@ function Water.start()
   end
 end
 
+function Water.isOn()
+  return waterOn
+end
+
 function Water.init()
   waterOn = false
+  usedStoppers = 0
   waterSX = wx / 800
   waterSY = wy / 600
   puzzle = {
@@ -139,39 +146,22 @@ end
 function Water.runPuzzle(dt)
   if waterOn then
     puzzle.IN.v = puzzle.IN.v + waterRate * dt
+    if love.audio.getSourceCount() < 1 then
+      love.audio.play(waterSound)
+    end
   end
   for id,tank in pairs(puzzle) do
     if tank.v / tank.w > tank.h and not tank.lid then
       if id == "L" then
-        state = 9
+        state = 10
       else
-        state = 8
+        state = 9
       end
     end
     for id,link in pairs(activeOutlets(tank)) do
       flow(tank, puzzle[link], 0, dt)
     end
   end
-end
-
-function Water.drawPuzzle()
-  love.graphics.setBackgroundColor(backgroundColor)
-  local startText = nil
-  love.graphics.setColor(0, 205, 210)
-  if waterOn then
-    startText = love.graphics.newText(amaranth_scaled, "Running puzzle...")
-  else
-    startText = love.graphics.newText(amaranth_scaled, "Press the spacebar to run!")
-  end
-  love.graphics.draw(startText, (wx * 0.025), (wy * 0.025), 0, (wy * 0.08) / startText:getHeight())
-  for id,tank in pairs(puzzle) do
-      Water.drawTank(tank)
-  end
-  love.graphics.push()
-  love.graphics.scale(waterSX, waterSY)
-  love.graphics.setColor(255, 255, 255)
-  love.graphics.draw(teal_duck, 602.25, 494 - teal_duck:getHeight() * 2 - waterLevel(puzzle.L), 0, -2, 2)
-  love.graphics.pop()
 end
 
 local function openingStencil(tank)
@@ -193,19 +183,31 @@ local function openingStencil(tank)
   end
 end
 
-function Water.drawTank(tank)
+local function drawTank1(tank)
   love.graphics.push()
   love.graphics.scale(waterSX, waterSY)
   love.graphics.setColor(lightWaterColor)
   if tank.v > 0 then
-    love.graphics.rectangle("fill", tank.x, tank.y, tank.w, tank.h)
+    love.graphics.rectangle("fill", tank.x, tank.y, tank.w + tankThickness, tank.h + tankThickness)
   end
+  love.graphics.pop()
+end
+
+local function drawTank2(tank)
+  love.graphics.push()
+  love.graphics.scale(waterSX, waterSY)
   love.graphics.setColor(waterColor)
-  if waterLevel(tank) < tank.h then
+  if waterLevel(tank) < tank.h and tank.v > 50 then
     love.graphics.rectangle("fill", tank.x, tank.y + tank.h, tank.w + tankThickness, -waterLevel(tank))
-  else
+  elseif tank.v > 50 then
     love.graphics.rectangle("fill", tank.x, tank.y + tank.h, tank.w + tankThickness, -tank.h)
   end
+  love.graphics.pop()
+end
+
+local function drawTank3(tank)
+  love.graphics.push()
+  love.graphics.scale(waterSX, waterSY)
   local function wrapStencil()
     openingStencil(tank)
   end
@@ -221,6 +223,70 @@ function Water.drawTank(tank)
   love.graphics.setStencilTest("gequal", 0)
   openingStencil(tank)
   love.graphics.pop()
+end
+
+function Water.drawPuzzle()
+  love.graphics.setBackgroundColor(backgroundColor)
+  local startText = nil
+  love.graphics.setColor(0, 205, 210)
+  if waterOn then
+    startText = love.graphics.newText(amaranth_scaled, "Running puzzle...")
+  else
+    startText = love.graphics.newText(amaranth_scaled, "Press the spacebar to run!")
+  end
+  love.graphics.draw(startText, (wx * 0.025), (wy * 0.025), 0, (wy * 0.08) / startText:getHeight())
+  for id,tank in pairs(puzzle) do
+      drawTank1(tank)
+  end
+  for id,tank in pairs(puzzle) do
+      drawTank2(tank)
+  end
+  for id,tank in pairs(puzzle) do
+      drawTank3(tank)
+  end
+  love.graphics.push()
+  love.graphics.scale(waterSX, waterSY)
+  love.graphics.setColor(255, 255, 255)
+  love.graphics.draw(teal_duck, 602.25, 494 - teal_duck:getHeight() * 2 - waterLevel(puzzle.L), 0, -2, 2)
+  love.graphics.pop()
+end
+
+local function inOpening(x,y,tank,opn)
+  if opn.side == "T" then
+    return util.pointWithin(x, y, tank.x + ((tank.w - openingWidth) * opn.pos) + tankThickness, tank.y, openingWidth - tankThickness, tankThickness)
+  elseif opn.side == "B" then
+    return util.pointWithin(x, y, tank.x + ((tank.w - openingWidth) * opn.pos) + tankThickness, tank.y + tank.h, openingWidth - tankThickness, tankThickness)
+  elseif opn.side == "L" then
+    return util.pointWithin(x, y, tank.x, tank.y + ((tank.h - openingWidth) * opn.pos) + tankThickness, tankThickness, openingWidth - tankThickness)
+  elseif opn.side == "R" then
+    return util.pointWithin(x, y, tank.x + tank.w, tank.y + ((tank.h - openingWidth) * opn.pos) + tankThickness, tankThickness, openingWidth - tankThickness)
+  end
+end
+
+function Water.processClick(x,y)
+  x = x / waterSX
+  y = y / waterSY
+  local addedStopper = false
+  local removedStopper = false
+  for id,tank in pairs(puzzle) do
+    for _,opn in ipairs(tank.opns) do
+      if inOpening(x,y,tank,opn) then
+        if opn.open and usedStoppers < maxStoppers then
+          opn.open = false
+          addedStopper = true
+        elseif not opn.open then
+          opn.open = true
+          removedStopper = true
+        end
+      end
+    end
+  end
+  if addedStopper then
+    usedStoppers = usedStoppers + 1
+  end
+  if removedStopper then
+    usedStoppers = usedStoppers - 1
+  end
 end
 
 function Water.fail()

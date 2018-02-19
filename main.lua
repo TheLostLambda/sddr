@@ -12,6 +12,7 @@ function love.load()
   maxwell = love.graphics.newImage("assets/sprites/manatee.png")
   teal_duck = love.graphics.newImage("assets/sprites/teal_duck.png")
   quack = love.audio.newSource("assets/sounds/quack.wav", "static")
+  waterSound = love.audio.newSource("assets/sounds/water.wav", "stream")
 
   -- Window setup
   love.window.setMode(800, 600, {resizable=true, minwidth=800, minheight=600})
@@ -23,7 +24,7 @@ function love.load()
   wy = love.graphics.getHeight()
   duckAngle = -math.pi / 4
   elapsedTime = 0
-  state = 7
+  state = 0
   name = "Dennis"
 
   -- Module Initialization
@@ -46,8 +47,10 @@ function love.draw()
   elseif state == 6 then
     intro6()
   elseif state == 7 then
-    water.drawPuzzle()
+    intro7()
   elseif state == 8 then
+    water.drawPuzzle()
+  elseif state == 9 then
     water.fail()
   end
 end
@@ -57,13 +60,16 @@ function love.update(dt)
     elapsedTime = elapsedTime + dt
     duckAngle = math.sin(elapsedTime * 1.5) / 2.25
   end
-  if state == 7 then
+  if state == 8 then
     water.runPuzzle(dt)
+  end
+  if state == 9 or state == 10 then
+    love.audio.stop(waterSound)
   end
 end
 
 function love.mousepressed(x, y, button, isTouch)
-  if state ~= 7 then
+  if state ~= 8 then
     love.audio.play(quack)
   end
 end
@@ -88,9 +94,15 @@ function love.mousereleased(x, y, button, isTouch)
     state = 6
   elseif state == 6 and util.choiceClick(x, y, 1) then
     state = 7
-  elseif state == 8 and util.choiceClick(x, y, 1) then
+  elseif state == 6 and util.choiceClick(x, y, 2) then
+    state = 8
+  elseif state == 7 and util.choiceClick(x, y, 1) then
+    state = 8
+  elseif state == 9 and util.choiceClick(x, y, 1) then
     water.init()
-    state = 7
+    state = 8
+  elseif state == 8 and not water.isOn() then
+    water.processClick(x,y)
   end
 end
 
@@ -98,7 +110,7 @@ function love.keyreleased(key)
   if state == 0 then
     state = 1
   end
-  if state == 7 and key == "space" then
+  if state == 8 and key == "space" then
     water.start()
   end
 end
@@ -106,14 +118,12 @@ end
 function love.resize()
   wx = love.graphics.getWidth()
   wy = love.graphics.getHeight()
-  if state == 7 then
-    waterSX = wx / 800
-    waterSY = wy / 600
-  end
+  waterSX = wx / 800
+  waterSY = wy / 600
 end
 
 function intro1()
-  local msg = "Hiya Dennis! I'm Maxwell the manatee! I heard that you were rubber duck collector of exquisite taste. Oh do I have a treat for you!"
+  local msg = "Hiya Dennis! I'm Maxwell the manatee! I heard that you were a rubber duck collector of exquisite taste. Oh do I have a treat for you!"
   util.dialog(msg, {"* I'm not Dennis...", "* And what may that be?"})
 end
 
@@ -138,8 +148,13 @@ function intro5()
 end
 
 function intro6()
-  local msg = "To free the Teal duck, fill its tub all the way up with water! You are allowed to place three stopppers. These stoppers can block a pipe and redirect the flow of water to free the duck!"
-  util.dialog(msg, {"* Let's do this."})
+  local msg = "To free the Teal duck, fill its tub all the way up with water! You are allowed to place a maximum of four stopppers. These stoppers can block a pipe and redirect the flow of water to free the duck!"
+  util.dialog(msg, {"* How do I play?", "* Onwards!"})
+end
+
+function intro7()
+  local msg = "To place a stopper, click on the empty space at the boundary of a tank and a pipe. To remove a stopper, click it a second time. Once you are ready to test your solution, press the spacebar."
+  util.dialog(msg, {"* Onwards!"})
 end
 
 function titleScreen()
