@@ -221,7 +221,7 @@ function intro5()
 end
 
 function intro6()
-  local msg = "To free the Teal duck, fill its tub all the way up with water! You are allowed to place a maximum of four stopppers. These stoppers can block a pipe and redirect the flow of water to free the duck!"
+  local msg = "To free the Teal duck, fill its tub all the way up with water! You are allowed to place a maximum of four stoppers. These stoppers can block a pipe and redirect the flow of water to free the duck!"
   util.dialog(msg, {"* How do I play?", "* Onwards!"})
 end
 

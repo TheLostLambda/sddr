@@ -3,13 +3,13 @@ local Water = {}
 local util = require("src.util")
 
 --[[
-  A tank is a table that stores the following infomation:
+  A tank is a table that stores the following information:
   id: A unique name for this tank
   x & y: The coordinates of the tank (measured from the top-left of the tank).
   w & h: Interior width and height of the tank.
   lid: A boolean value that indicates if this tank has a lid or not.
   openings: A list of tables. Each table stores the side of the tank that the
-    opening is on and a number from 0 to 1 that dictates its postition on that
+    opening is on and a number from 0 to 1 that dictates its position on that
     side of the tank (relative to the side length). Also stores a boolean that
     dictates whether or not the opening is blocked and the id of the tank it
     leads to.
