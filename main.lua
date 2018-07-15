@@ -114,8 +114,8 @@ function love.update(dt)
   end
   if state == 17 or state == 18 then
     elapsedTime = elapsedTime + dt
-    finaleAlpha = elapsedTime * (255 / 2)
-    if finaleAlpha > 255 and state ~= 18 then
+    finaleAlpha = elapsedTime * (1 / 2)
+    if finaleAlpha > 1 and state ~= 18 then
       state = 18
       elapsedTime = 0
       finaleAlpha = 0
@@ -231,7 +231,7 @@ function intro7()
 end
 
 function titleScreen()
-  love.graphics.setBackgroundColor(0, 205, 210)
+  love.graphics.setBackgroundColor(0, 0.8, 0.825)
   local titleText = love.graphics.newText(pacifico_scaled, "Sarah's Daring Duck Rescue!")
   love.graphics.draw(titleText, (wx * 0.05), (wy * 0.05), 0, (wx * 0.9) / titleText:getWidth())
   local duckScale = (wx * 0.2) / duck:getWidth()
@@ -247,12 +247,12 @@ end
 
 function duckUnlock()
   love.graphics.setBackgroundColor(backgroundColor)
-  love.graphics.setColor(0, 205, 210)
+  love.graphics.setColor(0, 0.8, 0.825)
   local rescueText = love.graphics.newText(pacifico_scaled, "Duck Rescued! (How Daring!!!)")
   love.graphics.draw(rescueText, (wx * 0.05), (wy * 0.05), 0, (wx * 0.9) / rescueText:getWidth())
-  love.graphics.setColor(255, 255, 255)
+  love.graphics.setColor(1, 1, 1)
   love.graphics.draw(teal_duck, (wx * 0.5), (wy * 0.45), duckAngle, fadedDuckScale, fadedDuckScale, teal_duck:getWidth() / 2, duck:getHeight() / 2)
-  love.graphics.setColor(0, 205, 210)
+  love.graphics.setColor(0, 0.8, 0.825)
   local bigText = love.graphics.newText(amaranth_scaled, "What a fine color!")
   love.graphics.draw(bigText, (wx * 0.2), (wy * 0.70), 0, (wx * 0.6) / bigText:getWidth())
   local smallerText = love.graphics.newText(amaranth_scaled, "The favorite color of the world's cutest girl! (Hey, that's you!)")
@@ -260,7 +260,7 @@ function duckUnlock()
 end
 
 function outro1()
-  love.graphics.setBackgroundColor(0, 205, 210)
+  love.graphics.setBackgroundColor(0, 0.8, 0.825)
   local msg = "That's one duck down, two to go! Maybe if we find the other two legendary rubber ducks, the mystery duck will reveal itself! I suppose we will have to conquer some more puzzles to find out!"
   util.dialog(msg, {"* So what now?"})
 end
@@ -281,7 +281,7 @@ function outro4()
 end
 
 function finale1()
-  love.graphics.setColor(255, 255, 255)
+  love.graphics.setColor(1, 1, 1)
   outro4()
   love.graphics.setColor(0, 0, 0, finaleAlpha)
   love.graphics.rectangle("fill", 0, 0, wx, wy)
@@ -290,7 +290,7 @@ end
 function finale2()
   love.graphics.setColor(0, 0, 0)
   love.graphics.rectangle("fill", 0, 0, wx, wy)
-  love.graphics.setColor(255, 70, 230, finaleAlpha)
+  love.graphics.setColor(1, 0.275, 0.9, finaleAlpha)
   love.graphics.setFont(amaranth)
   local msg = [[
       Happy belated Valentine's Day Sarah! I love you so very much! You make my day every day and for that I cannot thank you enough! You are absolutely perfect in my eyes.

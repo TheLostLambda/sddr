@@ -17,11 +17,11 @@ local util = require("src.util")
 ]]
 
 -- Constants
-tankColor = {200,200,200}
-waterColor = {30, 50, 180}
-lightWaterColor = {70, 80, 115}
-backgroundColor = {75, 75, 75}
-offColor = {160,30,0}
+tankColor = {0.8,0.8,0.8}
+waterColor = {0.1, 0.2, 0.7}
+lightWaterColor = {0.275, 0.3, 0.45}
+backgroundColor = {0.3, 0.3, 0.3}
+offColor = {0.625,0.1,0}
 tankThickness = 5
 waterRate = 2500
 openingWidth = 20
@@ -289,7 +289,7 @@ end
 
 function Water.fail()
   Water.drawPuzzle()
-  love.graphics.setColor(0, 0, 0, 128)
+  love.graphics.setColor(0, 0, 0, 0.5)
   love.graphics.rectangle("fill", 0, 0, wx, wy)
   love.graphics.setColor(255, 255, 255)
   local msg = "Oh no! You were close, but the water didn't fill the Teal Duck's tub first! You've got this " .. name .. "! Give it another go?"
@@ -298,7 +298,7 @@ end
 
 function Water.success()
   Water.drawPuzzle()
-  love.graphics.setColor(0, 0, 0, 128)
+  love.graphics.setColor(0, 0, 0, 0.5)
   love.graphics.rectangle("fill", 0, 0, wx, wy)
   love.graphics.setColor(255, 255, 255)
   local msg = "You did it " .. name .. "! You freed the Teal Duck from the lonely water temple! I can finally rest easy knowing he's being cared for."
